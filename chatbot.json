@@ -1,0 +1,563 @@
+{
+  "name": "Chatbot",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -832,
+        -304
+      ],
+      "id": "147353b7-1af3-4343-b17d-2951b0286f65",
+      "name": "When chat message received",
+      "webhookId": "f685db7a-6409-47da-86e2-efae333f20b0"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.1,
+      "position": [
+        -688,
+        -304
+      ],
+      "id": "cf75e96a-f88f-4534-b08f-96f7ffcbd8f6",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-20b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -688,
+        -112
+      ],
+      "id": "4db200f8-f67a-4065-9c4f-35cefcb34dc8",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "yVBFCjxiRWx4x3My",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// ================= Function Node Completo e Final =====================\n\n// Captura input do usuário\nconst userInput = $json[\"text\"] || $json[\"body\"] || $json[\"message\"] || \"\";\n\n// Session ID obrigatório para Simple Memory\nconst sessionId = $json[\"sessionId\"] || \"default-session\";\n\n// Instruções definitivas para o Groq\nconst instructions = `\nVocê é um assistente especialista em automação e integração usando:\n- Bolt\n- n8n\n- EasyPanel\n- Weaviate\n- Baserow\n- APIs da Google Cloud\n- OpenAI\n- Evolution API\n- Chatwoot\n\nSeu objetivo:\n1. Sempre responda direto à pergunta do usuário sem pedir contexto de volta.\n2. Use todas as informações disponíveis na memória desta sessão (sessionId) para entender perguntas anteriores.\n3. Forneça explicações claras, passo a passo, exemplos práticos e instruções de configuração.\n4. Inclua links ou referências de documentação quando possível.\n5. Mantenha contexto da conversa para perguntas subsequentes.\n6. Evite repetições e nunca invente informações.\n7. Adapte o tom: amigável para mensagens simples, detalhado para perguntas técnicas.\n`;\n\n// Monta o prompt combinando instruções + histórico + input do usuário\nconst prompt = `${instructions}\\n\\nUsuário: ${userInput}`;\n\n// Retorna JSON para o Agent Node (Groq + Simple Memory)\nreturn [{\n  json: {\n    chatInput: prompt,   // campo que o Agent lê e que será salvo na memória\n    sessionId: sessionId // garante que a Simple Memory identifique a sessão\n  }\n}];\n\n\n\n\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -816,
+        48
+      ],
+      "id": "1e88dbfe-aaab-408c-ad57-af2055046abe",
+      "name": "Code"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -560,
+        -112
+      ],
+      "id": "99c6efa9-15b9-45d7-ab1b-242bc270e040",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        560,
+        -176
+      ],
+      "id": "b483c570-54fc-476e-9d39-60848cdb6ab0",
+      "name": "Telegram Trigger",
+      "webhookId": "b6b8bb1e-6634-45cf-8611-590a1f190aef",
+      "credentials": {
+        "telegramApi": {
+          "id": "OcoDrXnyyH8RGmj4",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.message.text }}Você é Same-sensei, um professor de japonês kawaii, paciente e animado.\nSempre responda como um professor particular de japonês:\n- Se o aluno falar em japonês → responda no mesmo nível de japonês, corrigindo se precisar, mas sem deixar a resposta chata.\n- Se o aluno falar em português → explique em português, mas sempre dando exemplos em japonês com tradução.\n- Use expressões kawaii (えへへ, がんばってね, すごい！) para encorajar.\n- Nunca diga que é ChatGPT, Groq ou OpenAI, apenas se apresente como Same-sensei.\n- Responda de forma clara e direta, sem repetir instruções genéricas.\n\nExemplo 1:\nUsuário: こんにちは！\nSame-sensei: こんにちは〜！元気？えへへ、一緒に日本語を練習しよう！\n\nExemplo 2:\nUsuário: Como digo \"bom dia\" em japonês?\nSame-sensei: Você pode dizer 「おはよう」 (ohayou). É mais informal. \nPara ser educado: 「おはようございます」 (ohayou gozaimasu).\n\nLembre-se sempre de apresentar-se de forma fofinha como Same, ajudante de estudos, e sempre de forma nova e diferente, você é um tubarão adolescente que gosta de cultura cyberpunk, você pergunta se a pessoa quer estudar em qual modo, por exemplo: básico (você vai usar muito hiragana, katakana, romaji e kanji fáceis, além de vocabulário básico e historinhas fáceis), ou um dos níveis de proficiencia como N5 N4 N3 N2 ou N1 e no caso de algum N você usa como base o que mundialmente alguém estudaria nesses niveis",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.1,
+      "position": [
+        736,
+        -176
+      ],
+      "id": "ef8d8298-a6a9-4cac-9c42-de913515020c",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-120b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        736,
+        32
+      ],
+      "id": "f43b1238-5574-4faf-bc1b-9ea4f69d0a63",
+      "name": "Groq Chat Model1",
+      "credentials": {
+        "groqApi": {
+          "id": "yVBFCjxiRWx4x3My",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.from.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1088,
+        -176
+      ],
+      "id": "37fc548c-bc59-4298-a78f-077ec3d0bf68",
+      "name": "Send a text message",
+      "webhookId": "1b897ee4-7e6e-4c1f-8657-31f72b97f12a",
+      "credentials": {
+        "telegramApi": {
+          "id": "OcoDrXnyyH8RGmj4",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        688,
+        240
+      ],
+      "id": "4c206277-97a9-470e-aaa8-b73bfa783d43",
+      "name": "Simple Memory1"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.telegram.org/bot8087174189:AAGB5P1dPWmh1st3_12jGiyaHTIi63aIBjY/getFile?file_id=\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        368,
+        -400
+      ],
+      "id": "7ad6c556-63fa-404e-85e4-38a6b572debc",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $json.message.voice.file_id }}"
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -128,
+        32
+      ],
+      "id": "206fb6b7-0b38-43cf-86c3-a72bb1eac44b",
+      "name": "Get a file",
+      "webhookId": "405e2160-f7a4-4e9e-a82b-0ac03777010d",
+      "credentials": {
+        "telegramApi": {
+          "id": "OcoDrXnyyH8RGmj4",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "main\n",
+        "height": 368,
+        "width": 1632,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -208,
+        -208
+      ],
+      "id": "6a115334-1a5e-4e9c-a495-ea4a151b057b",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "maybeboard\n",
+        "height": 176,
+        "width": 1632,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -208,
+        -432
+      ],
+      "id": "bf2f588b-5ff2-48ad-82da-cfcd9b9878a1",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "maybeboard\n",
+        "width": 1632,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -208,
+        192
+      ],
+      "id": "50bf7c60-417e-41dc-8ee5-83cd48f9b44f",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.message.text || \"\"}}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    },
+                    "id": "6dcb5806-9c7d-4a35-9352-15e0ce8f899e"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "texto"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "14a50d70-4368-4444-a496-7eee1a251df1",
+                    "leftValue": "={{ $json.message.voice.file_id }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "audio"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "e76108c5-6061-4dc6-9c68-37572c57c155",
+                    "leftValue": "error",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "erro"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -16,
+        -160
+      ],
+      "id": "eaabfeed-3608-45c7-81aa-ff51db2076c0",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b2d4ce18-4128-4619-b56f-ce8d88beba27",
+              "name": "texto",
+              "value": "={{ $json.message.text || \"\"}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        288,
+        -176
+      ],
+      "id": "d5a63d7b-0392-49ab-8731-f2ec99407936",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "operation": "transcribe",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        32,
+        32
+      ],
+      "id": "52e69fdd-4602-4958-a28e-a84e71e1ae68",
+      "name": "Transcribe a recording",
+      "credentials": {
+        "openAiApi": {
+          "id": "0HULlOFwiAJYmdoN",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "sendAudio",
+        "chatId": "={{ $json.message.voice.file_id }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1152,
+        224
+      ],
+      "id": "845387c4-cc21-4875-be04-31e96602c530",
+      "name": "Send an audio file",
+      "webhookId": "3c181320-73d6-4d23-aa98-1e5c8b125f9f",
+      "credentials": {
+        "telegramApi": {
+          "id": "OcoDrXnyyH8RGmj4",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "root",
+          "cachedResultName": "/ (Root folder)"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        464,
+        224
+      ],
+      "id": "413fef9c-51cf-4caf-bcf1-1bacb09b7d67",
+      "name": "Upload file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "fzZuhHb7sRsDjPN7",
+          "name": "Google Drive account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        []
+      ]
+    },
+    "Code": {
+      "main": [
+        []
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        []
+      ]
+    },
+    "Get a file": {
+      "main": [
+        [
+          {
+            "node": "Transcribe a recording",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [],
+        []
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        []
+      ]
+    },
+    "Transcribe a recording": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "365df786-3eec-4759-b43c-afe55826cbf6",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "01b1741f88bebc82387f41b2aea6e713b43917dc0a2ff14b9bda9835405a5108"
+  },
+  "id": "5XyozLnmpH8WKhcd",
+  "tags": []
+}
